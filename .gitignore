@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.ultralytics-config/
+runs/
+reports/
+outputs/
+weights/
+*.pt
+*.pth
+*.onnx
+.venv/
+.idea/
+.vscode/
