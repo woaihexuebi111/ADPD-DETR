@@ -1,0 +1,9 @@
+# Change only `path` to the local dataset root.
+path: /path/to/formal_complex_sea
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: person_overboard
+
