@@ -1,0 +1,64 @@
+# L-ADPD-DETR: FasterNet-style LFENet student with a P3 three-scale detector.
+#
+# This is the deployable lightweight student described in Section 3.3.2. It
+# replaces ResNet-50 with LFENet/LFEB, moves DDPM from P2 to P3, and removes the
+# independent P2 detection path.
+#
+# Main route:
+#   Input -> LFENet backbone -> P3/P4/P5
+#   P3 -> RH-free light mask head -> D_s/F_s -> P3'_s
+#   P5 -> AIFI -> P5'
+#   P3'_s + P4 + P5' -> CFPIM/MSSF + PAN -> RTDETRDecoder
+#
+# Training:
+#   Use scripts/train_l_adpd_distillation.py with the condition-adaptive
+#   teacher. Inference keeps only this student model.
+
+nc: 1
+scales:
+  l: [1.00, 1.00, 1024]
+
+backbone:
+  - [-1, 1, ConvNormLayer, [32, 3, 2, None, False, 'relu']] # 0
+  - [-1, 1, ConvNormLayer, [32, 3, 1, None, False, 'relu']] # 1
+  - [-1, 1, ConvNormLayer, [64, 3, 1, None, False, 'relu']] # 2
+  - [-1, 1, nn.MaxPool2d, [3, 2, 1]] # 3
+  - [-1, 1, Blocks, [64, LFEBBase, 2, 2, 'relu']] # 4 P2, stride 4
+  - [-1, 1, Blocks, [128, LFEBBase, 2, 3, 'relu']] # 5 P3, stride 8
+  - [-1, 1, Blocks, [256, LFEBBase, 2, 4, 'relu']] # 6 P4, stride 16
+  - [-1, 1, Blocks, [512, LFEBBase, 2, 5, 'relu']] # 7 P5, stride 32
+
+head:
+  # RH-free DGFE student branch on P3.
+  # args: reduction, mask_hidden, mask_scale, detach_mask
+  - [5, 1, PaperOWRTDMDGFERHFree, [16, 64, 1.0, False]] # 8 P3'_s
+
+  # P5 -> AIFI -> P5'
+  - [7, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 9
+  - [-1, 1, AIFI, [1024, 8]] # 10
+  - [-1, 1, Conv, [256, 1, 1]] # 11 P5'
+
+  # Top-down CFPIM/MSSF: P5' + P4 -> P4_td.
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']] # 12
+  - [6, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 13
+  - [[13, 12, 11], 1, Msfc, []] # 14
+  - [-1, 3, RetBlockC3, [256, 0.5, 'chunk', 8]] # 15 P4_td
+  - [-1, 1, Conv, [256, 1, 1]] # 16
+
+  # Top-down CFPIM/MSSF: P4_td + P3'_s -> P3_td.
+  - [-1, 1, nn.Upsample, [None, 2, 'nearest']] # 17
+  - [8, 1, Conv, [256, 1, 1, None, 1, 1, False]] # 18
+  - [[18, 17, 16], 1, Msfc, []] # 19
+  - [-1, 3, RetBlockC3, [256, 0.5, 'chunk', 8]] # 20 P3_out
+
+  # Bottom-up PAN path.
+  - [-1, 1, Conv, [256, 3, 2]] # 21
+  - [[-1, 15], 1, Concat, [1]] # 22
+  - [-1, 3, RetBlockC3, [256, 0.5, 'chunk', 8]] # 23 P4_out
+
+  - [-1, 1, Conv, [256, 3, 2]] # 24
+  - [[-1, 11], 1, Concat, [1]] # 25
+  - [-1, 3, RetBlockC3, [256, 0.5, 'chunk', 8]] # 26 P5_out
+
+  # Three-level decoder: P3'_s/P3_out, P4_out, P5_out.
+  - [[20, 23, 26], 1, RTDETRDecoder, [nc, 256, 300, 4, 8, 6]] # 27
