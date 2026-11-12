@@ -1,0 +1,42 @@
+{
+  "dataset_name": "Complex Sea-Condition Dataset",
+  "archives": [
+    {
+      "split": "train",
+      "archive": "ComplexSea_train.zip",
+      "images": 1992,
+      "annotation_files": 1992,
+      "instances": 7427,
+      "bytes": 3996447328,
+      "sha256": "cda5e2f650dd97665fe459fe043ad1ffc5f7deb5e6420aae86f4af4fda946f95",
+      "download_url": "https://pan.baidu.com/s/1ezwpyF_55x1CSxWu0rnJ8w?pwd=c6zy",
+      "extraction_code": "c6zy"
+    },
+    {
+      "split": "val",
+      "archive": "ComplexSea_val.zip",
+      "images": 380,
+      "annotation_files": 380,
+      "instances": 1353,
+      "bytes": 771647658,
+      "sha256": "82ae7048b9c77f6f00a4a97abf0b445e2fc90f2c7d40404ccaecd09b2fbf85a4",
+      "download_url": "https://pan.baidu.com/s/1FAapaAyH85IhuMBusiz_yA?pwd=g7n2",
+      "extraction_code": "g7n2"
+    },
+    {
+      "split": "test",
+      "archive": "ComplexSea_test.zip",
+      "images": 429,
+      "annotation_files": 429,
+      "instances": 1667,
+      "bytes": 875309891,
+      "sha256": "742d275a4395951824a74f0ffc59fdde94d3be4777691f9de5335f3b42d175ab",
+      "download_url": "https://pan.baidu.com/s/16HGiINk9d9mdoXvUzI_2eg?pwd=3sne",
+      "extraction_code": "3sne"
+    }
+  ],
+  "dataset_doi": "10.17632/28zjh6bmjv.1",
+  "dataset_url": "https://doi.org/10.17632/28zjh6bmjv.1",
+  "dataset_repository": "Mendeley Data",
+  "dataset_version": 1
+}

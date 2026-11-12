@@ -4,6 +4,8 @@ import argparse
 import json
 import os
 import sys
+
+import yaml
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -12,6 +14,7 @@ os.environ.setdefault("YOLO_CONFIG_DIR", str(ROOT / ".ultralytics-config"))
 
 from ultralytics import RTDETR
 from ultralytics.models.rtdetr.coco import COCORTDETRValidator
+from ultralytics.models.rtdetr.sea import SeaDronesSeeValidator
 from ultralytics.utils.torch_utils import get_flops
 
 
@@ -19,7 +22,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--weights", type=Path, required=True)
     parser.add_argument("--data", type=Path, required=True)
-    parser.add_argument("--split", choices=("val", "test"), default="val")
+    parser.add_argument("--split", choices=("val", "test"), default=None,
+                        help="Default: test for ordinary datasets; val for official SeaDronesSee annotations")
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--batch", type=int, default=1)
     parser.add_argument("--device", default="0")
@@ -29,9 +33,17 @@ def main():
     for path in (args.weights, args.data):
         if not path.is_file():
             raise FileNotFoundError(path)
+    data_config = yaml.safe_load(args.data.read_text(encoding="utf-8-sig"))
+    if args.split is None:
+        args.split = "val" if data_config.get("evaluation_annotations") else "test"
+    validator_class = COCORTDETRValidator
+    if data_config.get("evaluation_annotations"):
+        if args.split != "val":
+            parser.error("Official SeaDronesSee annotations support --split val")
+        validator_class = SeaDronesSeeValidator
     args.output.mkdir(parents=True, exist_ok=True)
     model = RTDETR(str(args.weights))
-    validator = COCORTDETRValidator(args=dict(
+    validator = validator_class(args=dict(
         data=str(args.data), split=args.split, imgsz=args.imgsz, batch=args.batch,
         device=args.device, workers=args.workers, save_txt=False, save_json=False,
         plots=False, verbose=False, mode="val", project=str(args.output / "runs"),
@@ -47,6 +59,8 @@ def main():
         raise RuntimeError("GFLOPs profiling failed; zero is not a valid complexity measurement")
     result = {"weights": str(args.weights), "data": str(args.data), "split": args.split,
               "images": len(validator.coco_images), "imgsz": args.imgsz,
+              "dataset": data_config.get("dataset_id", "custom"),
+              "evaluation_annotations": data_config.get("evaluation_annotations"),
               "coco": validator.coco_metrics,
               "parameters_m": sum(p.numel() for p in model.model.parameters()) / 1e6,
               "gflops": flops, "profile_state": "fused inference model",

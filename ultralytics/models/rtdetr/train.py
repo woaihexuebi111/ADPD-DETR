@@ -20,6 +20,7 @@ from ultralytics.utils import RANK, colorstr
 
 from .val import RTDETRDataset, RTDETRValidator
 from .coco import COCORTDETRValidator
+from .sea import SeaDronesSeeValidator
 
 
 class RTDETRTrainer(DetectionTrainer):
@@ -121,6 +122,8 @@ class RTDETRTrainer(DetectionTrainer):
         else:
             self.loss_names = ('giou_loss', 'cls_loss', 'l1_loss')
         validator = COCORTDETRValidator if has_dgfe else RTDETRValidator
+        if self.data.get("evaluation_annotations"):
+            validator = SeaDronesSeeValidator
         return validator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def preprocess_batch(self, batch):

@@ -570,10 +570,12 @@ class OWRTDMDGFE(DifferenceMapGuidedEnhancement):
 
 
 class PaperOWRTDMDGFE(DifferenceMapGuidedEnhancement):
-    """Paper-faithful SR-TOD DGFE for OWRT-DETR.
+    """Reconstruction-guided difference enhancement based on SR-TOD DGFE.
 
-    This is the strict comparison module for the improved ``OWRTDMDGFE``. It
-    follows the SR-TOD paper formulation:
+    The module computes a channel-averaged reconstruction difference, applies
+    threshold-based spatial filtration and reweights the P2 feature channels.
+    The filtration and channel-reweighting operations follow the SR-TOD
+    formulation:
 
         D = MeanChannel(|Ir - Io|)
         Db = (Sign(D - t) + 1) * 0.5
@@ -581,8 +583,8 @@ class PaperOWRTDMDGFE(DifferenceMapGuidedEnhancement):
         Reweighting(P2) = sigmoid(MLP(AvgPool(P2)) + MLP(MaxPool(P2)))
         P2' = (Reweighting(P2) * Filtration(D)) * P2
 
-    It deliberately does not use P95/P90 dual thresholds, final masks, residual
-    convolutions, alpha gains, or ``P2 + Conv(P2*M)`` style enhancement.
+    The model configuration selects the threshold mode and reconstruction-loss
+    coefficient.
     """
 
     def __init__(
