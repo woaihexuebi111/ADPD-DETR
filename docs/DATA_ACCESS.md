@@ -81,10 +81,10 @@ This creates training-format labels, a portable dataset YAML, and the official c
 | 4 | Life-saving appliances | 4 |
 | 5 | Buoy | 5 |
 
-The provided SeaDronesSee main-model checkpoint has six output slots, with five scored foreground categories. Use the default `--class-layout original` preparation for this checkpoint. The optional `foreground` layout is for training a new five-output model and cannot be mixed with the six-slot main-model checkpoint.
+The default `--class-layout original` preparation preserves official category IDs 1–5 and reserves output slot 0, producing six model output slots. The optional `foreground` layout maps the five foreground categories to model IDs 0–4. Use the same class layout and dataset YAML for teacher training, student training and evaluation.
 
 Final local scoring uses official validation ground truth with crowd regions retained. The official test split has no public ground truth and is scored through the benchmark service. Follow the official dataset license and citation instructions.
 
-## Weights
+## Training and evaluation
 
-The two ADPD-DETR main-model checkpoints, their configurations and evaluation commands are listed in [README.md](../README.md#evaluation). The lightweight P3-DDPM model is trained using the training commands in [Training guide](TRAINING.md). Dataset images and raw benchmark archives are obtained from the links above and are not bundled with the model source.
+Training and evaluation commands are provided in [Training guide](TRAINING.md).

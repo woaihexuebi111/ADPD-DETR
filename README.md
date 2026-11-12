@@ -46,7 +46,7 @@ python scripts/verify_dataset.py --data-root /path/to/formal_complex_sea_public
 python scripts/prepare_data.py --dataset complex_sea --source-root /path/to/formal_complex_sea_public --output-root prepared_data/complex_sea
 ```
 
-SeaDronesSee ODv2 data and official crowd-aware validation annotations are prepared as described in [Data access](docs/DATA_ACCESS.md). Its main-model checkpoint uses six output slots with five scored foreground categories. Use the default `original` class layout for this checkpoint.
+SeaDronesSee ODv2 data and official crowd-aware validation annotations are prepared as described in [Data access](docs/DATA_ACCESS.md). The default `original` class layout uses six output slots, including reserved slot 0 and five scored foreground categories. Train the teacher and students using the same dataset YAML.
 
 ## Installation
 
@@ -74,17 +74,11 @@ These commands initialize the teacher from converted COCO weights and the main s
 
 ## Evaluation
 
-The `weights/` directory contains the following ADPD-DETR main-model checkpoints.
-
-| Checkpoint | Dataset | Configuration |
-|---|---|---|
-| ADPD-DETR-ComplexSea.pt | Complex Sea-Condition Dataset | [ComplexSea model](configs/checkpoints/ADPD-DETR-ComplexSea.yaml) |
-| ADPD-DETR-SeaDronesSee.pt | SeaDronesSee ODv2 | [SeaDronesSee model](configs/checkpoints/ADPD-DETR-SeaDronesSee.yaml) |
-
 ```bash
-python scripts/evaluate.py --weights weights/ADPD-DETR-ComplexSea.pt --data prepared_data/complex_sea/data.yaml --split test --device 0 --output outputs/complex_sea_main_test
-python scripts/evaluate.py --weights weights/ADPD-DETR-SeaDronesSee.pt --data prepared_data/seadronessee/data.yaml --split val --device 0 --output outputs/seadronessee_main_val
-python scripts/evaluate.py --weights runs/complex_light/weights/best.pt --data prepared_data/complex_sea/data.yaml --split test --device 0 --output outputs/complex_sea_light_test
+python scripts/evaluate.py --weights runs/complex_main/weights/best.pt --data prepared_data/complex_sea/data.yaml --split test --device 0 --output outputs/complex_main_test
+python scripts/evaluate.py --weights runs/complex_light/weights/best.pt --data prepared_data/complex_sea/data.yaml --split test --device 0 --output outputs/complex_light_test
+python scripts/evaluate.py --weights runs/sea_main/weights/best.pt --data prepared_data/seadronessee/data.yaml --split val --device 0 --output outputs/sea_main_val
+python scripts/evaluate.py --weights runs/sea_light/weights/best.pt --data prepared_data/seadronessee/data.yaml --split val --device 0 --output outputs/sea_light_val
 ```
 
 The output directory receives ground truth, predictions and a metrics JSON. AP, AP50, AP75 and APS are stored as fractions. AP averages IoU thresholds from 0.50 to 0.95 in steps of 0.05. APS uses annotation area in original image coordinates. SeaDronesSee uses official crowd-aware annotations and scores categories 1–5.

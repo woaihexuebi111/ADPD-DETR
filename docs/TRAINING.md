@@ -10,7 +10,7 @@ Prepare ComplexSea using the commands in [README.md](../README.md). Download Sea
 python scripts/prepare_data.py --dataset seadronessee --source-root /path/to/SeaDronesSee_ODv2 --output-root prepared_data/seadronessee --download-evaluation
 ```
 
-The default `original` layout preserves category IDs 1–5 and reserves output slot 0. It supports the included six-slot main-model checkpoint. For a new five-output experiment, select `--class-layout foreground`, train its teacher and both students with that YAML, and evaluate with the same YAML.
+The default `original` layout preserves category IDs 1–5 and reserves output slot 0, producing six model output slots. To use five foreground output slots, select `--class-layout foreground`. Train the teacher and both students with the resulting dataset YAML, then evaluate using the same YAML.
 
 ## Public COCO initialization
 
@@ -50,7 +50,7 @@ For ComplexSea, condition quantiles are selected from filename codes. E01 uses 0
 
 Training selects checkpoints using validation COCO bbox AP. Prepared SeaDronesSee YAMLs select the official crowd-aware validator for checkpoint selection and standalone evaluation.
 
-## Evaluate a trained student
+## Evaluation
 
 ```bash
 python scripts/evaluate.py --weights runs/complex_main/weights/best.pt --data prepared_data/complex_sea/data.yaml --split test --device 0 --output outputs/complex_main_test
