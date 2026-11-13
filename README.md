@@ -1,7 +1,5 @@
 # ADPD-DETR
 
-Adaptive Difference Perception and Knowledge Distillation for UAV-Based Small-Object Detection in Complex Open-Water Environments.
-
 This repository provides a reconstruction-guided teacher, ADPD-DETR and P3-DDPM L-ADPD-DETR students, DRD/TFD/PD training, dataset preparation, COCO evaluation and model profiling.
 
 ![Complex sea-condition examples](docs/images/complex_sea_examples.png)
